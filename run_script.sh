@@ -1,0 +1,1 @@
+python main.py --env RollerGrasperV2 --automatic_entropy_tuning Truepmain

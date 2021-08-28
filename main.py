@@ -60,16 +60,20 @@ if args.env == 'RollerGrasperV2':
     state_dim = env.state_dim
     action_dim = env.action_dim
     max_action = env.max_action
+    print(type(max_action))
+    action_space = gym.spaces.Box(low=-1 * max_action, high=max_action, shape=np.array([len(max_action),]))
 else:
     env = gym.make(args.env)
     env.seed(args.seed)
     env.action_space.seed(args.seed)
-
+    state_dim = env.observation_space.shape[0]
+    action_space=env.action_space 
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 
 # Agent
-agent = SAC(env.observation_space.shape[0], env.action_space, args)
+print('action space', action_space)
+agent = SAC(state_dim, action_space, args)
 
 #Tesnorboard
 writer = SummaryWriter('runs/{}_SAC_{}_{}_{}'.format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"), args.env,
@@ -90,10 +94,9 @@ for i_episode in itertools.count(1):
 
     while not done:
         if args.start_steps > total_numsteps:
-            action = env.action_space.sample()  # Sample random action
-        else:
             action = np.random.uniform(-max_action, max_action, action_dim)
-
+        else:
+            action = agent.select_action(state)
         if len(memory) > args.batch_size:
             # Number of updates per step in environment
             for i in range(args.updates_per_step):
